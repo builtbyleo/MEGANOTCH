@@ -93,6 +93,15 @@
   .btn.primary { background: #fff; color: #000; }
   .btn.ghost { border: 1.5px solid rgba(255,255,255,.25); }
   .meta { margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.4); }
+  .coming-soon { display: none; margin-top: 32px; }
+  .coming-soon b { display: inline-block; padding: 14px 24px; border-radius: 999px; background: rgba(255,255,255,.1); font-size: 16px; }
+  .coming-soon div { margin-top: 10px; font-size: 13px; color: rgba(255,255,255,.45); }
+  /* MEGANOTCH is for MacBooks. Phones and tablets get a promise instead. */
+  @media (hover: none) and (pointer: coarse), (max-width: 600px) {
+    .cta .primary, .meta { display: none; }
+    .cta { margin-top: 16px; }
+    .coming-soon { display: block; }
+  }
 
   .coverage { text-align: center; }
   .coverage .big { font-size: clamp(56px, 10vw, 120px); font-weight: 900; font-variant-numeric: tabular-nums; }
@@ -191,6 +200,10 @@
         <h1>MEGANOTCH</h1>
         <p class="quote">“Correct, not enough notch.”</p>
         <p class="sub">My notch app, MEGANOTCH, now comes with <b>500% more notch</b>, because more notch is better.</p>
+        <div class="coming-soon">
+          <b>📱 iPhone version coming soon</b>
+          <div>(waiting until my Claude limit resets)<br>MEGANOTCH is for MacBooks. Open this page on your Mac.</div>
+        </div>
         <div class="cta">
           <a class="btn primary" href="https://github.com/builtbyleo/MEGANOTCH/releases/latest/download/MegaNotch.zip">Download for macOS</a>
           <a class="btn ghost" href="https://github.com/builtbyleo/MEGANOTCH">View on GitHub</a>
@@ -262,6 +275,7 @@
         <details><summary>Why?</summary><p>Correct, not enough notch.</p></details>
         <details><summary>How do I get my desktop back?</summary><p>Hover the pill. Your desktop is now the edges of your screen. Enjoy them, but don't touch the notch, which is the middle of your screen.</p></details>
         <details><summary>Does it work on Macs without a notch?</summary><p>Yes. We give you one for free. Every Mac deserves a notch.</p></details>
+        <details><summary>Is there an iPhone version?</summary><p>Coming soon. Waiting until my Claude limit resets. The iPhone already has a Dynamic Island; we're working on a Dynamic Continent.</p></details>
         <details><summary>Is it safe?</summary><p>It's open source and about 500 lines of Swift. It doesn't need any permissions. It just takes your screen.</p></details>
         <details><summary>Is this a joke?</summary><p>The notch is not a joke. The notch has never been a joke.</p></details>
       </section>
