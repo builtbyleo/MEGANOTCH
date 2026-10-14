@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEGANOTCH — Correct, not enough notch.</title>
+<meta name="description" content="The notch app with 500% more notch, because more notch is better. 99.64% of your screen is now notch.">
+<meta property="og:title" content="MEGANOTCH — Correct, not enough notch.">
+<meta property="og:description" content="The notch app with 500% more notch, because more notch is better.">
+<meta property="og:image" content="https://builtbyleo.github.io/MEGANOTCH/icon.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="icon.png">
+<style>
+  :root {
+    --wallpaper: linear-gradient(135deg, #295cfa 0%, #9447ed 40%, #ff7359 75%, #ffbf4d 100%);
+    --spring: cubic-bezier(.34, 1.25, .64, 1);
+    --ear: 28px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background: var(--wallpaper);
+    font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Helvetica Neue", sans-serif;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  /* ---------- The desktop (you will rarely see it) ---------- */
+  .desktop-icon {
+    position: fixed; width: 92px; text-align: center; font-size: 11px; line-height: 1.25;
+    text-shadow: 0 1px 3px rgba(0,0,0,.5); user-select: none; overflow-wrap: anywhere;
+  }
+  .desktop-icon .glyph { font-size: 40px; display: block; margin-bottom: 4px; }
+
+  /* ---------- The notch ---------- */
+  .notch {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: #000; z-index: 10;
+    border-radius: 0;
+    transition: left .6s var(--spring), right .6s var(--spring), bottom .6s var(--spring), border-radius .6s var(--spring);
+  }
+  /* The ears. Off-screen until the notch shrinks. */
+  .notch::before, .notch::after {
+    content: ""; position: absolute; top: 0; width: var(--ear); height: var(--ear);
+  }
+  .notch::before { left: calc(-1 * var(--ear)); background: radial-gradient(circle at 0 100%, transparent calc(var(--ear) - .5px), #000 var(--ear)); }
+  .notch::after { right: calc(-1 * var(--ear)); background: radial-gradient(circle at 100% 100%, transparent calc(var(--ear) - .5px), #000 var(--ear)); }
+  .expanded .notch { left: 6vw; right: 6vw; bottom: 16vh; border-radius: 0 0 96px 96px; }
+
+  .notch-inner {
+    position: absolute; inset: 0; overflow-y: auto; border-radius: inherit;
+    padding: 0 24px 120px; scrollbar-width: thin; scrollbar-color: #333 transparent;
+  }
+  .expanded .notch-inner { padding-bottom: 40px; }
+  /* Content fades out before it reaches the pill. */
+  .notch-fade {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 190px; pointer-events: none;
+    background: linear-gradient(transparent, #000 55%); transition: opacity .3s;
+  }
+  .expanded .notch-fade { opacity: 0; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; background: linear-gradient(#000 70%, transparent);
+  }
+  .clock { font: 500 13px ui-monospace, Menlo, monospace; color: rgba(255,255,255,.5); }
+  .chip {
+    border: 0; cursor: pointer; font: 500 12px inherit; font-family: inherit; color: rgba(255,255,255,.6);
+    background: rgba(255,255,255,.08); padding: 6px 12px; border-radius: 999px;
+  }
+  .chip:hover { background: rgba(255,255,255,.14); }
+
+  main { max-width: 1100px; margin: 0 auto; }
+  section { margin: 0 auto 96px; }
+
+  .hero { text-align: center; padding-top: 7vh; }
+  .hero img { width: 132px; height: 132px; filter: drop-shadow(0 10px 30px rgba(148,71,237,.35)); }
+  .hero h1 {
+    margin: 12px 0 0; font-size: clamp(34px, 9.5vw, 104px); font-weight: 900; letter-spacing: .06em;
+    background: linear-gradient(#fff, #8c8c8c); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero .quote { font-size: clamp(22px, 3vw, 32px); font-weight: 700; margin: 8px 0 6px; }
+  .hero .sub { font-size: 18px; color: rgba(255,255,255,.65); margin: 0 auto; max-width: 620px; line-height: 1.45; }
+  .tagline { height: 24px; margin-top: 18px; font-size: 15px; color: rgba(255,255,255,.45); transition: opacity .4s; }
+
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; border-radius: 999px;
+    font-weight: 700; font-size: 16px; text-decoration: none; transition: transform .15s;
+  }
+  .btn:hover { transform: scale(1.04); }
+  .btn.primary { background: #fff; color: #000; }
+  .btn.ghost { border: 1.5px solid rgba(255,255,255,.25); }
+  .meta { margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.4); }
+
+  .coverage { text-align: center; }
+  .coverage .big { font-size: clamp(56px, 10vw, 120px); font-weight: 900; font-variant-numeric: tabular-nums; }
+  .coverage .label { color: rgba(255,255,255,.5); font-size: 15px; }
+
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: rgba(255,255,255,.45); text-align: center; margin: 0 0 20px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .card {
+    background: #141414; border: 1px solid rgba(255,255,255,.06); border-radius: 20px; padding: 18px;
+    font-size: 14px; line-height: 1.45; color: rgba(255,255,255,.85);
+  }
+  .card .title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.45); margin-bottom: 10px; }
+  .card .huge { font-size: 30px; font-weight: 800; }
+  .bar { height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .bar div { height: 100%; width: 0; background: #fff; animation: play 180s linear infinite; }
+  @keyframes play { to { width: 100%; } }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
+  th { color: rgba(255,255,255,.45); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  td:last-child { font-weight: 800; }
+  td:nth-child(2) { color: rgba(255,255,255,.5); }
+  .footnote { margin-top: 14px; font-size: 13px; color: rgba(255,255,255,.4); text-align: center; }
+
+  .quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  blockquote { margin: 0; background: #141414; border-radius: 20px; padding: 20px; font-size: 16px; line-height: 1.4; }
+  blockquote cite { display: block; margin-top: 10px; font-style: normal; font-size: 13px; color: rgba(255,255,255,.45); }
+
+  .install { max-width: 720px; }
+  .install ol { line-height: 1.7; font-size: 15px; color: rgba(255,255,255,.85); padding-left: 22px; }
+  code { font: 13px ui-monospace, Menlo, monospace; background: #1c1c1c; padding: 2px 6px; border-radius: 6px; }
+  pre { background: #141414; padding: 14px 16px; border-radius: 14px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+
+  .faq { max-width: 720px; }
+  details { border-bottom: 1px solid rgba(255,255,255,.08); padding: 14px 0; }
+  summary { cursor: pointer; font-weight: 700; font-size: 16px; }
+  details p { color: rgba(255,255,255,.7); margin: 10px 0 0; line-height: 1.5; }
+
+  footer { text-align: center; font-size: 13px; color: rgba(255,255,255,.35); padding-bottom: 20px; line-height: 1.8; }
+
+  /* ---------- The pill (your entire desktop) ---------- */
+  .pill-label {
+    position: fixed; z-index: 11; bottom: 50px; left: 50%; transform: translateX(-50%);
+    text-align: center; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.6);
+    pointer-events: none; transition: opacity .3s;
+  }
+  .pill-label .arrow { display: block; animation: bob 1.4s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(5px); } }
+  .pill {
+    position: fixed; z-index: 11; bottom: 14px; left: 50%; width: 180px; height: 30px; margin-left: -90px;
+    border-radius: 15px; background: var(--wallpaper); background-attachment: fixed; cursor: pointer;
+    animation: pulse 2.4s ease-in-out infinite; transition: opacity .3s;
+  }
+  /* Generous hover zone reaching the bottom edge, like the app. */
+  .pill::after { content: ""; position: absolute; inset: -6px -6px -20px; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 1.5px rgba(255,255,255,.15); }
+    50% { box-shadow: 0 0 0 1.5px rgba(255,255,255,.5), 0 0 16px rgba(255,255,255,.35); }
+  }
+  .expanded .pill, .expanded .pill-label { opacity: 0; pointer-events: none; }
+
+  .toast {
+    position: fixed; z-index: 20; top: 64px; left: 50%; transform: translate(-50%, -12px);
+    background: #222; border: 1px solid rgba(255,255,255,.12); border-radius: 999px;
+    padding: 14px 24px; font-weight: 600; font-size: 15px; text-align: center; white-space: pre-line;
+    opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .notch { transition-duration: .01s; }
+    .pill, .pill-label .arrow, .bar div { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- The desktop. -->
+<div class="desktop-icon" style="right: 2vw; bottom: 3vh;"><span class="glyph">📁</span>untitled folder 7</div>
+<div class="desktop-icon" style="right: calc(2vw + 100px); bottom: 3vh;"><span class="glyph">🖼️</span>Screenshot 2026-10-14 at 10.23.41.png</div>
+<div class="desktop-icon" style="left: 2vw; bottom: 3vh;"><span class="glyph">📄</span>taxes_FINAL_final(2).pdf</div>
+<div class="desktop-icon" style="left: calc(2vw + 100px); bottom: 3vh;"><span class="glyph">📝</span>notch ideas.txt</div>
+
+<div class="notch" id="notch">
+  <div class="notch-inner">
+    <div class="topbar">
+      <span class="clock" id="clock"></span>
+      <button class="chip" id="exit">Exit notch (coward)</button>
+    </div>
+
+    <main>
+      <section class="hero">
+        <img src="icon.png" alt="MEGANOTCH icon">
+        <h1>MEGANOTCH</h1>
+        <p class="quote">“Correct, not enough notch.”</p>
+        <p class="sub">My notch app, MEGANOTCH, now comes with <b>500% more notch</b>, because more notch is better.</p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/builtbyleo/MEGANOTCH/releases/latest/download/MegaNotch.zip">Download for macOS</a>
+          <a class="btn ghost" href="https://github.com/builtbyleo/MEGANOTCH">View on GitHub</a>
+        </div>
+        <div class="meta">v1.0.0 · macOS 14+ · Apple Silicon &amp; Intel · 712 KB of pure notch · <a href="#install">install help</a></div>
+        <div class="tagline" id="tagline"></div>
+      </section>
+
+      <section class="coverage">
+        <div class="big" id="coverage">99.64%</div>
+        <div class="label">of your screen is notch right now. Industry average: 0.4%.</div>
+      </section>
+
+      <section>
+        <h2>Widgets</h2>
+        <div class="grid">
+          <div class="card"><div class="title">♪ Now Playing</div><b>Fan Noise (Extended Mix)</b><br><span style="opacity:.5">Your MacBook</span><div class="bar"><div></div></div></div>
+          <div class="card"><div class="title">File Shelf</div>Drop files here. We'll hold them. Forever.<br>(You can't reach your files anyway.)</div>
+          <div class="card"><div class="title">Weather</div>Dark.<br>100% chance of notch.</div>
+          <div class="card"><div class="title">Calendar</div>0 meetings today.<br>You couldn't find Zoom anyway.</div>
+          <div class="card"><div class="title">Battery</div><span class="huge">Yes.</span></div>
+          <div class="card"><div class="title">Camera</div>Your webcam is in here somewhere.<br>Probably. We lost it.</div>
+          <div class="card"><div class="title">Live Activity</div>You, staring at a black screen.<br>Started just now. Ongoing.</div>
+          <div class="card"><div class="title">MegaNotch Pro</div>$9.99/mo unlocks 4 more pixels of desktop.<br><span style="opacity:.5">Stackable. Non-refundable.</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Performance</h2>
+        <table>
+          <tr><th>Metric</th><th>Other notch apps</th><th>MEGANOTCH</th></tr>
+          <tr><td>Notch coverage</td><td>0.4%</td><td>99.64%</td></tr>
+          <tr><td>Notch coverage in desktop mode</td><td>0.4%</td><td>73.68% (we compromised)</td></tr>
+          <tr><td>Notch-to-desktop ratio</td><td>1 : 249</td><td>274 : 1</td></tr>
+          <tr><td>Time to notch</td><td>200ms</td><td>0ms (you are already in the notch)</td></tr>
+          <tr><td>Dynamic Island equivalent</td><td>1 Island</td><td>1 Continent</td></tr>
+          <tr><td>Accidental notch expansions / hour</td><td>2</td><td>∞</td></tr>
+          <tr><td>Windows visible</td><td>All of them</td><td>None. Focus mode.</td></tr>
+          <tr><td>Vibes</td><td>ok</td><td>immaculate</td></tr>
+        </table>
+        <p class="footnote">Benchmark methodology: we opened MEGANOTCH and then could not open anything else, so it won every category by default.</p>
+      </section>
+
+      <section>
+        <h2>Testimonials</h2>
+        <div class="quotes">
+          <blockquote>“I used to have a desktop. Now I have a notch.”<cite>— Early adopter</cite></blockquote>
+          <blockquote>“I hovered the notch to check my notifications and it took over my entire life.”<cite>— Power user</cite></blockquote>
+          <blockquote>“Where is my Dock”<cite>— Everyone</cite></blockquote>
+          <blockquote>“This is what Steve would have wanted.”<cite>— Nobody</cite></blockquote>
+        </div>
+      </section>
+
+      <section class="install" id="install">
+        <h2>Install</h2>
+        <ol>
+          <li>Download <b>MegaNotch.zip</b> and unzip it.</li>
+          <li>Drag <b>MegaNotch.app</b> into Applications.</li>
+          <li>Open it. macOS will say it can't verify the developer. That's because an Apple Developer ID costs $99/year, and that's $99 that could go into notch.</li>
+          <li>Open <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>.</li>
+        </ol>
+        <p style="color:rgba(255,255,255,.6)">Or, in Terminal:</p>
+        <pre><code>xattr -dr com.apple.quarantine /Applications/MegaNotch.app</code></pre>
+        <p style="color:rgba(255,255,255,.6)">To quit: click <b>Exit notch (coward)</b>, press <b>⌘Q</b>, or right-click the notch. You can't use the menu bar, because the menu bar is notch.</p>
+      </section>
+
+      <section class="faq">
+        <h2>FAQ</h2>
+        <details><summary>Why?</summary><p>Correct, not enough notch.</p></details>
+        <details><summary>How do I get my desktop back?</summary><p>Hover the pill. Your desktop is now the edges of your screen. Enjoy them, but don't touch the notch, which is the middle of your screen.</p></details>
+        <details><summary>Does it work on Macs without a notch?</summary><p>Yes. We give you one for free. Every Mac deserves a notch.</p></details>
+        <details><summary>Is it safe?</summary><p>It's open source and about 500 lines of Swift. It doesn't need any permissions. It just takes your screen.</p></details>
+        <details><summary>Is this a joke?</summary><p>The notch is not a joke. The notch has never been a joke.</p></details>
+      </section>
+
+      <footer>
+        MIT (Mega Is Too-little) · Made by <a href="https://github.com/builtbyleo">builtbyleo</a><br>
+        Not affiliated with Apple, who only went 0.4% of the way.
+      </footer>
+    </main>
+  </div>
+  <div class="notch-fade"></div>
+</div>
+
+<div class="pill-label">your entire desktop<span class="arrow">⌄</span></div>
+<div class="pill" id="pill" title="your entire desktop"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+  const root = document.documentElement;
+  const notch = document.getElementById('notch');
+  const pill = document.getElementById('pill');
+  const toast = document.getElementById('toast');
+  let expanded = false, armed = false, dwell, toastTimer;
+
+  const collapseToasts = [
+    "You hovered the notch.\nSo the notch expanded.\nThat's how notch apps work.",
+    "Welcome back to the notch.\nWe missed you.",
+    "Desktop session ended.\nThank you for visiting your desktop.",
+    "The notch was only 74% of your screen.\nWe fixed that.",
+  ];
+  const taglines = [
+    "The only notch app brave enough to go all the way.",
+    "Other notch apps: 200pt. MegaNotch: all of them.",
+    "Why settle for a Dynamic Island when you can have a Dynamic Continent?",
+    "Your notch, but it went to the gym.",
+    "We put a notch in your notch so you can notch while you notch.",
+    "Productivity apps hate this one weird trick.",
+    "Zero distractions. Also zero windows.",
+    "Designed in California. Notched everywhere.",
+  ];
+
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  function expand() {
+    if (expanded) return;
+    expanded = true;
+    // Only hovering the notch *again* counts, so the Exit button isn't undone instantly.
+    armed = !notch.matches(':hover');
+    root.classList.add('expanded');
+    updateCoverage();
+  }
+
+  function collapse() {
+    if (!expanded) return;
+    expanded = false;
+    root.classList.remove('expanded');
+    showToast(collapseToasts[Math.floor(Math.random() * collapseToasts.length)]);
+    updateCoverage();
+  }
+
+  pill.addEventListener('mouseenter', expand);
+  pill.addEventListener('click', expand);
+  notch.addEventListener('mouseenter', () => {
+    if (expanded && armed) dwell = setTimeout(collapse, 250);
+  });
+  notch.addEventListener('mouseleave', () => {
+    clearTimeout(dwell);
+    if (expanded) armed = true;
+  });
+  // Touch screens: tapping the notch counts as hovering it.
+  notch.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' && expanded) collapse();
+  });
+
+  document.getElementById('exit').addEventListener('click', () => {
+    if (expanded) { showToast("You're already out.\nThis is as out as it gets."); return; }
+    expand();
+    showToast("Nice try.\nHere's 26% of your screen.");
+  });
+
+  function updateCoverage() {
+    const w = innerWidth, h = innerHeight;
+    let notchArea;
+    if (expanded) {
+      const nw = w * 0.88, nh = h * 0.84, corner = 1 - Math.PI / 4, ear = 28, r = 96;
+      notchArea = nw * nh - 2 * r * r * corner + 2 * ear * ear * corner;
+    } else {
+      notchArea = w * h - 180 * 30;
+    }
+    document.getElementById('coverage').textContent = (notchArea / (w * h) * 100).toFixed(2) + '%';
+  }
+  addEventListener('resize', updateCoverage);
+  updateCoverage();
+
+  const clock = document.getElementById('clock');
+  const tick = () => clock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  setInterval(tick, 1000); tick();
+
+  const taglineEl = document.getElementById('tagline');
+  let t = 0;
+  const nextTagline = () => {
+    taglineEl.style.opacity = 0;
+    setTimeout(() => { taglineEl.textContent = taglines[t++ % taglines.length]; taglineEl.style.opacity = 1; }, 400);
+  };
+  nextTagline(); setInterval(nextTagline, 4000);
+</script>
+</body>
+</html>
